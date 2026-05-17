@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Melegim — Mon espace créatif</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,300;0,400;0,700;1,400&family=Playfair+Display:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<!-- ===== LOGIN ===== -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">melegim</div>
+    <div class="login-tagline">ton espace créatif, rien qu'à toi 🌸</div>
+    <input type="text" id="login-user" placeholder="Ton prénom" autocomplete="off">
+    <input type="password" id="login-pass" placeholder="Mot de passe" onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="login-btn" onclick="doLogin()">Entrer dans mon espace</button>
+    <div class="login-err" id="login-err">Prénom ou mot de passe incorrect</div>
+  </div>
+</div>
+
+<!-- ===== APP ===== -->
+<div id="app-screen" style="display:none">
+  <div class="app">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+      <div class="sidebar-logo">M</div>
+      <nav>
+        <button class="nav-btn active" onclick="showPage('dashboard')" aria-label="Accueil">
+          <i class="ti ti-home"></i><span class="tip">Accueil</span>
+        </button>
+        <button class="nav-btn" onclick="showPage('todo')" aria-label="Tâches">
+          <i class="ti ti-checkbox"></i><span class="tip">Tâches</span>
+        </button>
+        <button class="nav-btn" onclick="showPage('planning')" aria-label="Planning">
+          <i class="ti ti-calendar"></i><span class="tip">Planning</span>
+        </button>
+        <button class="nav-btn" onclick="showPage('matieres')" aria-label="Matières">
+          <i class="ti ti-scissors"></i><span class="tip">Matières</span>
+        </button>
+        <button class="nav-btn" onclick="showPage('journal')" aria-label="Journal">
+          <i class="ti ti-notebook"></i><span class="tip">Journal</span>
+        </button>
+        <button class="nav-btn" onclick="showPage('croquis')" aria-label="Atelier">
+          <i class="ti ti-pencil"></i><span class="tip">Atelier</span>
+        </button>
+        <button class="nav-btn" onclick="showPage('collections')" aria-label="Collections">
+          <i class="ti ti-layout-grid"></i><span class="tip">Collections</span>
+        </button>
+      </nav>
+      <button class="logout-btn" onclick="doLogout()" title="Déconnexion">
+        <i class="ti ti-logout"></i>
+      </button>
+    </div>
+
+    <!-- MAIN -->
+    <div class="main">
+      <div class="header">
+        <div class="header-title" id="page-title">melegim</div>
+        <div class="header-right">
+          <div class="user-badge" id="user-badge"></div>
+          <div class="date-badge" id="today-date"></div>
+        </div>
+      </div>
+
+      <div class="content">
+
+        <!-- DASHBOARD -->
+        <div class="page active" id="page-dashboard">
+          <div class="greet" id="greet-txt"></div>
+          <div class="greet-sub" id="greet-sub"></div>
+          <div class="verse-card">
+            <div class="verse-ref" id="b-ref"></div>
+            <div class="verse-txt" id="b-txt"></div>
+          </div>
+          <div class="motiv-card"><p id="motiv-txt"></p></div>
+          <div class="stats-row">
+            <div class="stat-card"><div class="stat-lbl">Tâches restantes</div><div class="stat-val" id="s-tasks">0</div></div>
+            <div class="stat-card"><div class="stat-lbl">Collections</div><div class="stat-val" id="s-colls">0</div></div>
+            <div class="stat-card"><div class="stat-lbl">Heures créées</div><div class="stat-val" id="s-hours">0h</div></div>
+            <div class="stat-card"><div class="stat-lbl">Pensées gardées</div><div class="stat-val" id="s-journal">0</div></div>
+          </div>
+        </div>
+
+        <!-- TODO -->
+        <div class="page" id="page-todo">
+          <div class="section-title"><i class="ti ti-checkbox"></i> Mes tâches</div>
+          <div class="row-gap">
+            <input class="inp" type="text" id="todo-inp" placeholder="Nouvelle tâche..." onkeydown="if(event.key==='Enter')addTodo()" style="flex:1">
+            <select class="inp" id="todo-prio" style="width:120px">
+              <option value="normal">Normal</option>
+              <option value="urgent">Urgent !</option>
+              <option value="idée">Idée</option>
+            </select>
+            <button class="btn-main" onclick="addTodo()"><i class="ti ti-plus"></i> Ajouter</button>
+          </div>
+          <div id="todo-list"></div>
+        </div>
+
+        <!-- PLANNING -->
+        <div class="page" id="page-planning">
+          <div class="section-title"><i class="ti ti-calendar"></i> Planning de la semaine</div>
+          <div class="week-grid" id="week-grid"></div>
+          <div class="row-gap">
+            <input class="inp" type="text" id="plan-task" placeholder="Tâche à planifier..." style="flex:1">
+            <select class="inp" id="plan-day" style="width:110px">
+              <option value="0">Lundi</option><option value="1">Mardi</option><option value="2">Mercredi</option>
+              <option value="3">Jeudi</option><option value="4">Vendredi</option><option value="5">Samedi</option>
+              <option value="6">Dimanche</option>
+            </select>
+            <button class="btn-main" onclick="addPlanTask()"><i class="ti ti-plus"></i></button>
+          </div>
+        </div>
+
+        <!-- MATIERES -->
+        <div class="page" id="page-matieres">
+          <div class="section-title"><i class="ti ti-scissors"></i> Estimation de matières</div>
+          <div class="mat-header">
+            <div>Matière</div><div>Quantité</div><div>Prix/unité (€)</div><div></div>
+          </div>
+          <div id="mat-list"></div>
+          <button class="btn-sec" onclick="addMat()" style="margin-top:8px"><i class="ti ti-plus"></i> Ajouter une matière</button>
+          <div class="mat-total-box">
+            <div class="mat-total-lbl">Estimation totale</div>
+            <div class="mat-total-val" id="mat-total">0,00 €</div>
+          </div>
+        </div>
+
+        <!-- JOURNAL -->
+        <div class="page" id="page-journal">
+          <div class="section-title"><i class="ti ti-notebook"></i> Mon espace à moi</div>
+          <p class="page-desc">Ici tu peux tout écrire — tes doutes, tes joies, tes rêves. C'est ton espace rien qu'à toi 💗</p>
+          <textarea class="journal-area" id="journal-inp" placeholder="Écris ce qui te passe par la tête..."></textarea>
+          <button class="btn-main" onclick="saveJournal()" style="margin-top:12px">
+            <i class="ti ti-device-floppy"></i> Garder cette pensée
+          </button>
+          <div id="journal-list" style="margin-top:20px"></div>
+        </div>
+
+        <!-- CROQUIS -->
+        <div class="page" id="page-croquis">
+          <div class="section-title"><i class="ti ti-pencil"></i> Atelier croquis</div>
+          <div class="sketch-layout">
+
+            <!-- Panneau gauche -->
+            <div class="sketch-sidebar">
+
+              <div class="sketch-panel">
+                <div class="panel-title"><i class="ti ti-wand"></i> Silhouettes</div>
+                <div class="sil-grid">
+                  <button class="sil-btn" onclick="drawSil('robe')"><span class="sil-icon">👗</span>Robe</button>
+                  <button class="sil-btn" onclick="drawSil('bustier')"><span class="sil-icon">🎀</span>Bustier</button>
+                  <button class="sil-btn" onclick="drawSil('top')"><span class="sil-icon">👕</span>Top</button>
+                  <button class="sil-btn" onclick="drawSil('veste')"><span class="sil-icon">🧥</span>Veste</button>
+                  <button class="sil-btn" onclick="drawSil('pantalon')"><span class="sil-icon">👖</span>Pantalon</button>
+                  <button class="sil-btn" onclick="drawSil('jupe')"><span class="sil-icon">💃</span>Jupe</button>
+                </div>
+              </div>
+
+              <div class="sketch-panel">
+                <div class="panel-title"><i class="ti ti-sparkles"></i> Détails</div>
+                <div class="detail-list">
+                  <button class="detail-btn" onclick="addDetail('boutons')"><i class="ti ti-circle-dot"></i> Rangée de boutons</button>
+                  <button class="detail-btn" onclick="addDetail('tirets')"><i class="ti ti-line-dashed"></i> Couture pointillée</button>
+                  <button class="detail-btn" onclick="addDetail('col')"><i class="ti ti-shirt-sport"></i> Col / encolure</button>
+                  <button class="detail-btn" onclick="addDetail('poche')"><i class="ti ti-square"></i> Poche</button>
+                  <button class="detail-btn" onclick="addDetail('zip')"><i class="ti ti-arrows-vertical"></i> Fermeture éclair</button>
+                  <button class="detail-btn" onclick="addDetail('volant')"><i class="ti ti-wave-sine"></i> Volant / frou-frou</button>
+                  <button class="detail-btn" onclick="addDetail('ceinture')"><i class="ti ti-minus"></i> Ceinture</button>
+                  <button class="detail-btn" onclick="addDetail('noeud')"><i class="ti ti-bow"></i> Nœud / ruban</button>
+                </div>
+              </div>
+
+              <div class="sketch-panel">
+                <div class="panel-title"><i class="ti ti-notes"></i> Matières du croquis</div>
+                <div class="row-gap" style="margin-bottom:8px">
+                  <input class="inp inp-sm" type="text" id="mat-note-inp" placeholder="ex: lin beige..." onkeydown="if(event.key==='Enter')addMatNote()">
+                  <button class="btn-sec btn-sm" onclick="addMatNote()"><i class="ti ti-plus"></i></button>
+                </div>
+                <div id="mat-tags"></div>
+                <textarea class="mat-note-area" id="mat-note-area" placeholder="Notes libres : couleurs, textures, fournisseurs..."></textarea>
+              </div>
+
+              <div class="sketch-panel ia-panel">
+                <div class="panel-title"><i class="ti ti-robot"></i> L'IA t'aide à dessiner</div>
+                <p class="panel-desc">Tu ne sais pas comment le tracer ? Décris ton idée en texte, l'IA te guide !</p>
+                <textarea class="ia-area" id="ia-inp" placeholder="Ex: une robe longue avec des boutons devant, un col en V et des manches évasées..."></textarea>
+                <button class="btn-main" onclick="askIA()" style="width:100%;margin-top:8px;font-size:13px">
+                  <i class="ti ti-sparkles"></i> L'IA m'aide à visualiser
+                </button>
+                <div class="ia-loading" id="ia-loading"><i class="ti ti-loader"></i> L'IA réfléchit...</div>
+                <div class="ia-response" id="ia-resp"></div>
+              </div>
+
+            </div>
+
+            <!-- Zone dessin -->
+            <div class="sketch-main-col">
+              <div class="toolbar">
+                <button class="tool-btn active" id="tb-draw" onclick="setTool('draw')"><i class="ti ti-pencil"></i> Crayon</button>
+                <button class="tool-btn" id="tb-line" onclick="setTool('line')"><i class="ti ti-minus"></i> Ligne</button>
+                <button class="tool-btn" id="tb-rect" onclick="setTool('rect')"><i class="ti ti-square"></i> Rectangle</button>
+                <button class="tool-btn" id="tb-dash" onclick="setTool('dash')"><i class="ti ti-line-dashed"></i> Pointillé</button>
+                <button class="tool-btn" id="tb-erase" onclick="setTool('erase')"><i class="ti ti-eraser"></i> Gomme</button>
+                <div class="toolbar-sep"></div>
+                <span class="tool-lbl">Taille</span>
+                <input type="range" min="1" max="18" value="2" step="1" id="brush-sz" style="width:80px">
+                <div class="toolbar-sep"></div>
+                <span class="tool-lbl">Couleurs</span>
+                <div class="color-swatch sel" style="background:#3D2314" onclick="setColor('#3D2314',this)" title="Brun"></div>
+                <div class="color-swatch" style="background:#C4622D" onclick="setColor('#C4622D',this)" title="Terracotta"></div>
+                <div class="color-swatch" style="background:#D4956A" onclick="setColor('#D4956A',this)" title="Caramel"></div>
+                <div class="color-swatch" style="background:#E8C9A0" onclick="setColor('#E8C9A0',this)" title="Sable"></div>
+                <div class="color-swatch" style="background:#B8860B" onclick="setColor('#B8860B',this)" title="Or"></div>
+                <div class="color-swatch" style="background:#8B4513" onclick="setColor('#8B4513',this)" title="Chocolat"></div>
+                <div class="color-swatch" style="background:#F5C6A0" onclick="setColor('#F5C6A0',this)" title="Pêche"></div>
+                <div class="color-swatch" style="background:#D2691E" onclick="setColor('#D2691E',this)" title="Cannelle"></div>
+                <div class="color-swatch" style="background:#E8D5C0" onclick="setColor('#E8D5C0',this)" title="Nude clair"></div>
+                <div class="color-swatch" style="background:#fff;border:1px solid #ccc" onclick="setColor('#ffffff',this)" title="Blanc"></div>
+                <div class="color-swatch" style="background:#555" onclick="setColor('#555555',this)" title="Gris"></div>
+                <div class="color-swatch" style="background:#000" onclick="setColor('#000000',this)" title="Noir"></div>
+                <div style="margin-left:auto;display:flex;gap:6px;flex-wrap:wrap">
+                  <button class="tool-btn" onclick="undoSketch()"><i class="ti ti-arrow-back"></i> Annuler</button>
+                  <button class="tool-btn" onclick="clearCanvas()"><i class="ti ti-trash"></i> Effacer</button>
+                  <button class="btn-sec" onclick="saveSketch()"><i class="ti ti-device-floppy"></i> Sauver</button>
+                  <button class="btn-ghost" onclick="dlSketch()" title="Télécharger"><i class="ti ti-download"></i></button>
+                </div>
+              </div>
+              <div class="canvas-wrap">
+                <canvas id="sketch-canvas" width="700" height="520"></canvas>
+              </div>
+              <div class="row-gap sketch-meta">
+                <input class="inp" type="text" id="sketch-name" placeholder="Nom du croquis (ex: Robe bohème été)" style="flex:1">
+                <select class="inp" id="sketch-coll" style="width:160px">
+                  <option value="">Choisir une collection...</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- COLLECTIONS -->
+        <div class="page" id="page-collections">
+          <div class="section-title"><i class="ti ti-layout-grid"></i> Mes collections</div>
+          <div class="coll-header">
+            <div class="coll-tabs" id="coll-tabs"></div>
+            <button class="btn-sec" onclick="newCollection()"><i class="ti ti-plus"></i> Nouvelle collection</button>
+          </div>
+          <div class="coll-grid" id="coll-grid"></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast-box" id="toast"></div>
+
+<script src="app.js"></script>
+</body>
+</html>

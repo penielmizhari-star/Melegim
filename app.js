@@ -1,7 +1,7 @@
 /* ===== MELEGIM — app.js ===== */
 
 /* --- AUTH --- */
-const USERS = { melegim: 'Bonsoir' };
+const USERS = { melegim: '1234' };
 let currentUser = '';
 
 function doLogin() {
@@ -74,13 +74,14 @@ let S = {
     { id: 4, name: 'Idées en vrac', emoji: '💡' }
   ],
   pieces: [],
-  matNotes: []
+  matNotes: [],
+  ressources: []
 };
 
 function lsKey(k) { return 'melegim_' + currentUser + '_' + k; }
 
 function loadState() {
-  ['todos', 'plan', 'journal', 'mats', 'collections', 'pieces', 'matNotes'].forEach(k => {
+  ['todos', 'plan', 'journal', 'mats', 'collections', 'pieces', 'matNotes', 'ressources'].forEach(k => {
     const v = localStorage.getItem(lsKey(k));
     if (v) { try { S[k] = JSON.parse(v); } catch (e) {} }
   });
@@ -128,9 +129,9 @@ function initApp() {
 /* --- NAVIGATION --- */
 const PAGE_TITLES = {
   dashboard: 'melegim', todo: 'Mes tâches', planning: 'Planning',
-  matieres: 'Matières', journal: 'Mon espace', croquis: 'Atelier croquis', collections: 'Mes collections'
+  matieres: 'Matières', journal: 'Mon espace', croquis: 'Atelier croquis', collections: 'Mes collections', ressources: 'Mes ressources'
 };
-const PAGE_ORDER = ['dashboard', 'todo', 'planning', 'matieres', 'journal', 'croquis', 'collections'];
+const PAGE_ORDER = ['dashboard', 'todo', 'planning', 'matieres', 'journal', 'croquis', 'collections', 'ressources'];
 
 function showPage(id) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -140,6 +141,7 @@ function showPage(id) {
   const idx = PAGE_ORDER.indexOf(id);
   if (idx >= 0) document.querySelectorAll('.nav-btn')[idx].classList.add('active');
   if (id === 'collections') renderCollections();
+  if (id === 'ressources') renderRessources();
   if (id === 'croquis') { resizeCanvas(); renderMatTags(); populateCollSelect(); }
 }
 
@@ -158,6 +160,7 @@ function renderAll() {
   renderMats();
   renderJournal();
   renderMatTags();
+  renderRessources();
   updateStats();
 }
 
@@ -702,9 +705,13 @@ function renderCollections() {
       </div>`;
   }).join('');
 
-  html += `<button class="new-card-btn" onclick="showPage('croquis')">
+  html += `<div class="new-card-btn" onclick="showPage('croquis')">
     <i class="ti ti-plus"></i> Nouveau croquis
-  </button>`;
+  </div>
+  <label class="new-card-btn" style="cursor:pointer">
+    <i class="ti ti-upload"></i> Uploader une image
+    <input type="file" accept="image/*" style="display:none" onchange="uploadToCollection(this)">
+  </label>`;
   grid.innerHTML = html;
 }
 
@@ -720,4 +727,85 @@ function delPiece(id) {
 }
 
 /* ===== RESIZE ===== */
+
+/* ===== UPLOAD IMAGE COLLECTION ===== */
+function uploadToCollection(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const name = prompt('Nom de ce projet ?') || file.name.replace(/\.[^.]+$/, '');
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const collId = activeCollId !== 'all' ? parseInt(activeCollId) : null;
+    S.pieces.push({
+      id: Date.now(),
+      name: name,
+      collId: collId,
+      img: e.target.result,
+      hours: 0,
+      date: new Date().toLocaleDateString('fr-FR'),
+      matNotes: '',
+      matTags: [],
+      uploaded: true
+    });
+    saveS('pieces');
+    renderCollections();
+    updateStats();
+    toast('Image "' + name + '" ajoutée ! 🖼️');
+  };
+  reader.readAsDataURL(file);
+}
+
+/* ===== RESSOURCES ===== */
+function addResource() {
+  const url = document.getElementById('res-url').value.trim();
+  const titre = document.getElementById('res-titre').value.trim();
+  const cat = document.getElementById('res-cat').value;
+  if (!url) return;
+  const label = titre || url;
+  S.ressources = S.ressources || [];
+  S.ressources.unshift({ id: Date.now(), url, titre: label, cat, date: new Date().toLocaleDateString('fr-FR') });
+  saveS('ressources');
+  renderRessources();
+  document.getElementById('res-url').value = '';
+  document.getElementById('res-titre').value = '';
+  toast('Ressource sauvegardée 🔗');
+}
+
+function delResource(id) {
+  S.ressources = (S.ressources || []).filter(r => r.id !== id);
+  saveS('ressources');
+  renderRessources();
+}
+
+function renderRessources() {
+  S.ressources = S.ressources || [];
+  const el = document.getElementById('res-list');
+  if (!el) return;
+  const cats = ['tiktok', 'youtube', 'pinterest', 'article', 'autre'];
+  const icons = { tiktok: 'ti-brand-tiktok', youtube: 'ti-brand-youtube', pinterest: 'ti-brand-pinterest', article: 'ti-file-text', autre: 'ti-link' };
+  const labels = { tiktok: 'TikTok', youtube: 'YouTube', pinterest: 'Pinterest', article: 'Article', autre: 'Autre' };
+
+  // Grouper par catégorie
+  let html = '';
+  cats.forEach(cat => {
+    const items = S.ressources.filter(r => r.cat === cat);
+    if (!items.length) return;
+    html += '<div class="res-group">';
+    html += '<div class="res-group-title"><i class="ti ' + icons[cat] + '"></i> ' + labels[cat] + ' (' + items.length + ')</div>';
+    items.forEach(r => {
+      html += '<div class="res-card">';
+      html += '<a href="' + r.url + '" target="_blank" class="res-link"><i class="ti ti-external-link"></i> ' + r.titre + '</a>';
+      html += '<div class="res-meta">' + r.date + '</div>';
+      html += '<button onclick="delResource(' + r.id + ')" class="res-del"><i class="ti ti-trash"></i></button>';
+      html += '</div>';
+    });
+    html += '</div>';
+  });
+
+  if (!S.ressources.length) {
+    html = '<p style="color:var(--text-s);font-size:13px;text-align:center;margin-top:24px;font-style:italic">Aucune ressource pour l\'instant 🔗</p>';
+  }
+  el.innerHTML = html;
+}
+
 window.addEventListener('resize', () => { if (canvas) resizeCanvas(); });

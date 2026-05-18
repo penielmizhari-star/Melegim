@@ -52,6 +52,9 @@
         <button class="nav-btn" onclick="showPage('collections')" aria-label="Collections">
           <i class="ti ti-layout-grid"></i><span class="tip">Collections</span>
         </button>
+        <button class="nav-btn" onclick="showPage('ressources')" aria-label="Ressources">
+          <i class="ti ti-bookmark"></i><span class="tip">Ressources</span>
+        </button>
       </nav>
       <button class="logout-btn" onclick="doLogout()" title="Déconnexion">
         <i class="ti ti-logout"></i>
@@ -252,6 +255,25 @@
             <button class="btn-sec" onclick="newCollection()"><i class="ti ti-plus"></i> Nouvelle collection</button>
           </div>
           <div class="coll-grid" id="coll-grid"></div>
+        </div>
+
+      <!-- RESSOURCES -->
+        <div class="page" id="page-ressources">
+          <div class="section-title"><i class="ti ti-bookmark"></i> Mes ressources</div>
+          <p class="page-desc">Sauvegarde ici tous tes liens TikTok, YouTube, Pinterest, articles... pour ne jamais les perdre 🔗</p>
+          <div class="res-add-form">
+            <input class="inp" type="url" id="res-url" placeholder="Colle ton lien ici (https://...)" style="flex:1">
+            <input class="inp" type="text" id="res-titre" placeholder="Titre (optionnel)" style="width:200px">
+            <select class="inp" id="res-cat" style="width:130px">
+              <option value="tiktok">TikTok</option>
+              <option value="youtube">YouTube</option>
+              <option value="pinterest">Pinterest</option>
+              <option value="article">Article</option>
+              <option value="autre">Autre</option>
+            </select>
+            <button class="btn-main" onclick="addResource()"><i class="ti ti-plus"></i> Sauver</button>
+          </div>
+          <div id="res-list" style="margin-top:20px"></div>
         </div>
 
       </div>

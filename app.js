@@ -301,25 +301,26 @@ function renderMatTags() {
 
 /* ===== IA CROQUIS ===== */
 async function askIA() {
-  const q = document.getElementById('ia-inp').value.trim();
+  var q = document.getElementById('ia-inp').value.trim();
   if (!q) return;
   document.getElementById('ia-loading').style.display = 'block';
   document.getElementById('ia-resp').style.display = 'none';
 
   try {
-    // Etape 1 : demander a Claude le prompt ideal pour generer l image
-    const resp = await fetch('https://winter-sun-345c.peniel-mizhari.workers.dev', {
+    var systemPrompt = "Tu es experte en mode. Reponds UNIQUEMENT avec du JSON valide, aucun texte autour. Format exact : {\"prompt_en\":\"fashion design sketch, white background, professional fashion illustration, clean lines\",\"silhouette\":\"jupe\",\"details\":[\"volant\",\"poche\"],\"matieres\":[\"coton\"],\"conseil\":\"conseil court\",\"description\":\"description courte en francais\"}. Silhouette (un seul) : robe, bustier, top, veste, pantalon, jupe. Details (max 3) : boutons, tirets, col, poche, zip, volant, ceinture, noeud. Pour prompt_en, decris le vetement en anglais de facon detaillee pour une IA image.";
+
+    var resp = await fetch('https://winter-sun-345c.peniel-mizhari.workers.dev', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         model: 'claude-haiku-4-5-20251001',
         max_tokens: 300,
-        system: "Tu es experte en mode et en prompts pour IA generative d image. Reponds UNIQUEMENT avec du JSON valide, aucun texte autour. Format : {"prompt_en":"fashion design sketch, [description en anglais du vetement], white background, professional fashion illustration, clean lines, haute couture style","silhouette":"jupe","details":["volant","poche"],"matieres":["coton"],"conseil":"conseil court","description":"description courte en francais"}. Pour silhouette choisis UN parmi : robe, bustier, top, veste, pantalon, jupe. Pour details max 3 parmi : boutons, tirets, col, poche, zip, volant, ceinture, noeud.",
+        system: systemPrompt,
         messages: [{ role: 'user', content: q }]
       })
     });
 
-    const data = await resp.json();
+    var data = await resp.json();
     if (data.error) {
       document.getElementById('ia-resp').innerHTML = 'Erreur : ' + data.error.message;
       document.getElementById('ia-resp').style.display = 'block';
@@ -327,11 +328,13 @@ async function askIA() {
       return;
     }
 
-    const txt = data.content.filter(c => c.type === 'text').map(c => c.text).join('').trim();
-    let parsed;
+    var txt = data.content.filter(function(c) { return c.type === 'text'; }).map(function(c) { return c.text; }).join('').trim();
+    var parsed;
     try {
-      const jsonMatch = txt.match(/\{[\s\S]*\}/);
-      parsed = JSON.parse(jsonMatch ? jsonMatch[0] : txt);
+      var jsonMatch = txt.match(/[\s\S]*/);
+      var start = txt.indexOf('{');
+      var end2 = txt.lastIndexOf('}');
+      parsed = JSON.parse(txt.substring(start, end2 + 1));
     } catch(e) {
       document.getElementById('ia-resp').innerHTML = 'Erreur de format. Reessaie !';
       document.getElementById('ia-resp').style.display = 'block';
@@ -339,53 +342,46 @@ async function askIA() {
       return;
     }
 
-    // Etape 2 : generer l image avec Pollinations (gratuit, sans cle)
-    const promptEncode = encodeURIComponent(parsed.prompt_en || 'fashion design sketch, elegant dress, white background, professional fashion illustration');
-    const imageUrl = `https://image.pollinations.ai/prompt/${promptEncode}?width=512&height=768&nologo=true&seed=${Date.now()}`;
+    var promptEn = parsed.prompt_en || 'fashion design sketch, elegant clothing, white background, professional fashion illustration';
+    var imageUrl = 'https://image.pollinations.ai/prompt/' + encodeURIComponent(promptEn) + '?width=512&height=768&nologo=true&seed=' + Date.now();
 
-    // Afficher message d attente
-    document.getElementById('ia-resp').innerHTML = '🎨 Génération de l'image en cours... (15-30 secondes)';
+    document.getElementById('ia-resp').innerHTML = 'Generation de l image en cours... (15-30 secondes)';
     document.getElementById('ia-resp').style.display = 'block';
     document.getElementById('ia-loading').style.display = 'none';
 
-    // Charger l image
-    const img = new Image();
+    var img = new Image();
     img.crossOrigin = 'anonymous';
     img.onload = function() {
-      // Dessiner l image sur le canvas
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       history = [];
-      const scale = Math.min(canvas.width / img.width, canvas.height / img.height);
-      const x = (canvas.width - img.width * scale) / 2;
-      const y = (canvas.height - img.height * scale) / 2;
+      var scale = Math.min(canvas.width / img.width, canvas.height / img.height);
+      var x = (canvas.width - img.width * scale) / 2;
+      var y = (canvas.height - img.height * scale) / 2;
       ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
       endDraw();
 
-      // Ajouter les matieres comme tags
       if (parsed.matieres && parsed.matieres.length) {
-        parsed.matieres.forEach(m => {
+        parsed.matieres.forEach(function(m) {
           if (!S.matNotes.includes(m)) S.matNotes.push(m);
         });
         saveS('matNotes');
         renderMatTags();
       }
 
-      // Remplir le nom
       if (parsed.description) {
-        const nameInput = document.getElementById('sketch-name');
+        var nameInput = document.getElementById('sketch-name');
         if (nameInput) nameInput.value = parsed.description.substring(0, 60);
       }
 
-      // Message succes
-      let html = '<strong>✨ Image générée !</strong><br><br>';
+      var html = '<strong>Image generee !</strong><br><br>';
       if (parsed.description) html += parsed.description + '<br><br>';
-      if (parsed.conseil) html += '<em>💡 ' + parsed.conseil + '</em><br><br>';
-      html += '<small style="color:var(--text-s)">Tu peux retoucher avec les outils de dessin, puis sauver dans ton portfolio !</small>';
+      if (parsed.conseil) html += '<em>' + parsed.conseil + '</em><br><br>';
+      html += '<small>Tu peux retoucher avec les outils puis sauver dans le portfolio !</small>';
       document.getElementById('ia-resp').innerHTML = html;
     };
 
     img.onerror = function() {
-      document.getElementById('ia-resp').innerHTML = 'Génération d'image échouée. Réessaie dans quelques secondes !';
+      document.getElementById('ia-resp').innerHTML = 'Generation echouee. Reessaie dans quelques secondes !';
     };
 
     img.src = imageUrl;

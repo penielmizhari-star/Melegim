@@ -1,7 +1,7 @@
 /* ===== MELEGIM — app.js ===== */
 
 /* --- AUTH --- */
-const USERS = { melegim: '1234' };
+const USERS = { melegim: 'Bonsoir' };
 let currentUser = '';
 
 function doLogin() {
